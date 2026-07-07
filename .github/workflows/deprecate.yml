@@ -1,0 +1,44 @@
+name: Deprecate
+
+# Marks a published version of every @plugger/* package as deprecated on npm.
+# Run from the Actions tab (or `gh workflow run Deprecate -f version=0.2.0`).
+# Uses the NPM_TOKEN secret — no token ever leaves the runner.
+# To UN-deprecate, dispatch again with an empty message.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deprecate (e.g. 0.2.0)"
+        required: true
+      message:
+        description: "Deprecation message (empty string un-deprecates)"
+        required: true
+        default: "Superseded by a later release — this version has incorrect internal dependency pins. Upgrade to the latest."
+
+permissions:
+  contents: read
+
+jobs:
+  deprecate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Deprecate @plugger/*@${{ inputs.version }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          MESSAGE: ${{ inputs.message }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is not set."
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          for p in core vanilla preact react vue web-components; do
+            echo "→ deprecating @plugger/$p@${VERSION}"
+            npm deprecate "@plugger/$p@${VERSION}" "$MESSAGE"
+          done
