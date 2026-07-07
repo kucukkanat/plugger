@@ -3,7 +3,17 @@
  * contributions into the DOM. Every other adapter (React, Vue, Preact, Web
  * Components) is a thin wrapper over {@link renderSlot}.
  */
-import type { PluginHost, UIContribution } from "@plugger/core";
+import type { PluginHost, UIContribution, Unsubscribe } from "@plugger/core";
+
+/**
+ * The minimal structural surface `renderSlot` needs from a host. Accepting this
+ * (rather than a concrete `PluginHost<API, S>`) means a host with any state/API
+ * generics can be rendered without variance friction.
+ */
+export interface SlotSource {
+  getSlot(slot: string): UIContribution[];
+  onSlotChange(listener: (slot: string) => void, slot?: string): Unsubscribe;
+}
 
 export interface SlotRenderOptions {
   /** Props passed to every contribution's mount context. */
@@ -46,7 +56,7 @@ const runCleanup = (value: void | (() => void) | { dispose(): void }): (() => vo
  * contributions are never needlessly remounted.
  */
 export function renderSlot(
-  host: PluginHost<never, never> | PluginHost,
+  host: SlotSource,
   slot: string,
   container: HTMLElement,
   options: SlotRenderOptions = {},
