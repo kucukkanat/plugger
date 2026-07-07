@@ -247,7 +247,10 @@ export interface PluginContext<
 > {
   /** Identity of this plugin. */
   readonly meta: Readonly<Required<Pick<PluginDefinition, "name">> & Partial<PluginDefinition>>;
-  /** Reactive application state (permission-gated writes). */
+  /**
+   * Reactive application state, permission-gated. If the host declared no
+   * state, this is an empty store — safe to ignore in imperative-only plugins.
+   */
   readonly store: ScopedStore<S>;
   /** Services the application author chose to expose. */
   readonly api: API;
@@ -368,7 +371,11 @@ export interface PluginHostOptions<
   API extends object = Record<string, unknown>,
   S extends object = Record<string, unknown>,
 > {
-  /** Initial application state, or a pre-built {@link Store}. */
+  /**
+   * Optional shared state: an initial value Plugger wraps in a store, or a
+   * pre-built {@link Store} to reuse your app's existing state. Omit it
+   * entirely for imperative-only hosts — the store is then simply empty.
+   */
   state?: S | Store<S>;
   /** Services exposed to plugins under `context.api`. */
   api?: API;

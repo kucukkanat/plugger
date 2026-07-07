@@ -77,6 +77,56 @@ describe("PluginHost — loading & registration", () => {
   });
 });
 
+describe("PluginHost — optional state", () => {
+  it("runs an imperative-only host with no state configured", async () => {
+    const toast = vi.fn();
+    const host = createPluginHost<{ toast(msg: string): void }>({
+      api: { toast },
+      slots: ["toolbar"],
+      logger: { debug() {}, info() {}, warn() {}, error() {} },
+    });
+
+    // No `state` option and no `S` generic — the store is simply empty.
+    expect(host.store.getState()).toEqual({});
+
+    await host.use(
+      definePlugin<{ toast(msg: string): void }>({
+        name: "imperative",
+        permissions: ["ui:render", "api:toast"],
+        activate(ctx) {
+          ctx.api.toast("ready");
+          ctx.ui.contribute("toolbar", {
+            mount: (el) => {
+              el.textContent = "hi";
+            },
+          });
+        },
+      }),
+    );
+
+    expect(host.status("imperative")).toBe("active");
+    expect(toast).toHaveBeenCalledWith("ready");
+    expect(host.getSlot("toolbar")).toHaveLength(1);
+  });
+
+  it("still allows read/write against the initially-empty store", async () => {
+    const host = createPluginHost({
+      logger: { debug() {}, info() {}, warn() {}, error() {} },
+    });
+    await host.use(
+      definePlugin({
+        name: "late-state",
+        permissions: ["state:read", "state:write"],
+        activate(ctx) {
+          expect(ctx.store.getState()).toEqual({});
+          ctx.store.setState({ hello: "world" });
+        },
+      }),
+    );
+    expect(host.store.getState()).toEqual({ hello: "world" });
+  });
+});
+
 describe("PluginHost — store access & permissions", () => {
   it("grants read/write when the plugin requests them", async () => {
     const host = makeHost();

@@ -62,8 +62,8 @@ class SubscriptionBag {
 
 /**
  * The Plugger host — the object an application author creates to make their SPA
- * extensible. It owns shared state, exposed services, the command & UI
- * registries, and the plugin lifecycle.
+ * extensible. It owns the (optional) shared store, the exposed services, the
+ * command & UI registries, and the plugin lifecycle.
  */
 export class PluginHost<
   API extends object = Record<string, unknown>,
@@ -92,6 +92,9 @@ export class PluginHost<
       ...options,
     };
     this.logger = options.logger ?? console;
+    // State is optional. Omit it for imperative-only hosts (services + slots)
+    // and the host runs on an empty store; pass a prebuilt Store to share your
+    // app's existing state instead of running a second one.
     this.store = isStore<S>(options.state)
       ? options.state
       : createStore<S>((options.state ?? {}) as S);

@@ -101,10 +101,11 @@ export function AppAuthors() {
 
       <h2>2. Create a host</h2>
       <p>
-        The host owns everything plugins can reach: reactive{" "}
-        <strong>state</strong>, a set of <strong>services</strong> (your{" "}
-        <code>api</code>), and the named <strong>UI slots</strong> plugins may
-        contribute to.
+        A host exposes up to three things to plugins: a set of{" "}
+        <strong>services</strong> (your <code>api</code>), the named{" "}
+        <strong>UI slots</strong> they may contribute to, and — optionally —
+        reactive <strong>state</strong>. Only <code>api</code> and{" "}
+        <code>slots</code> are needed to get started.
       </p>
       <CodeBlock lang="ts" filename="host.ts">{`import { createPluginHost } from "@plugger/core";
 
@@ -126,6 +127,21 @@ export const host = createPluginHost<AppApi, AppState>({
   },
   slots: ["toolbar", "sidebar", "statusbar"],
 });`}</CodeBlock>
+
+      <p>
+        <code>state</code> is optional. A purely imperative host — services and
+        slots, no shared store — is just:
+      </p>
+      <CodeBlock lang="ts">{`export const host = createPluginHost<AppApi>({
+  api: { saveDocument, toast },
+  slots: ["toolbar"],
+});`}</CodeBlock>
+      <Callout type="tip" title="Reuse your app's own store">
+        Already using Redux, Zustand, or signals? Pass your existing store as{" "}
+        <code>state</code> instead of running a second one — plugins then read
+        and react to the same data your app does. See{" "}
+        <Link to="/docs/state">State &amp; store</Link>.
+      </Callout>
 
       <h2>3. Render the slots</h2>
       <p>
@@ -570,9 +586,19 @@ export function StateAndStore() {
       <Eyebrow>Core concepts</Eyebrow>
       <h1>State &amp; store</h1>
       <p className="lead">
-        Plugger ships a tiny reactive store shared by the host and every plugin.
-        It's dependency-free and works with your existing state too.
+        Plugger ships a tiny reactive store the host can share with every
+        plugin. It's dependency-free, works with your existing state — and it's
+        entirely optional.
       </p>
+
+      <Callout type="info" title="Do you even need shared state?">
+        State is the one <em>reactive</em> primitive: plugins subscribe and
+        re-render when it changes. If your plugins only call services and render
+        slots, skip <code>state</code> on the host — the store is simply empty
+        and <code>ctx.store</code> is safe to ignore. Reach for it only when
+        plugins must read or react to live app data (a theme, a selection, an
+        unread count).
+      </Callout>
 
       <h2>The store API</h2>
       <CodeBlock lang="ts">{`import { createStore } from "@plugger/core";
@@ -588,11 +614,12 @@ const off = store.subscribe((next, prev) => { /* … */ });
 // Fine-grained: only fires when the slice changes.
 store.select((s) => s.count, (count) => render(count));`}</CodeBlock>
 
-      <h2>Bring your own state</h2>
+      <h2>Bring your own state — or none</h2>
       <p>
-        Pass any object as <code>state</code> and Plugger wraps it in a store —
-        or pass an existing store you built with <code>createStore</code> to
-        share it with the rest of your app.
+        Pass any object as <code>state</code> and Plugger wraps it in a store;
+        pass an existing store you built with <code>createStore</code> to share
+        your app's real state instead of running a second one; or omit{" "}
+        <code>state</code> altogether for an imperative-only host.
       </p>
 
       <h2>Inside a plugin</h2>
@@ -771,7 +798,7 @@ export function ApiReference() {
 
       <h2>createPluginHost(options)</h2>
       <CodeBlock lang="ts">{`interface PluginHostOptions<API, S> {
-  state?: S | Store<S>;          // initial state or a prebuilt store
+  state?: S | Store<S>;          // optional — initial state or a prebuilt store
   api?: API;                     // services exposed to plugins
   slots?: string[];              // UI slot names to declare up front
   permissions?: PermissionPolicy;
