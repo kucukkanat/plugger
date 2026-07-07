@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, navigate, useRoute } from "../router";
 import { GROUP_ORDER, matchPage, PAGES } from "../site";
 import { useTheme } from "../theme";
+import { FRAMEWORKS, useFramework, type Framework } from "../framework";
 
 const GH_URL = "https://github.com/kucukkanat/plugger";
 
@@ -81,8 +82,19 @@ function Header({ onMenu }: { onMenu: () => void }) {
         >
           Examples
         </a>
+        <a
+          href="#/recipes"
+          className={isActive("/recipes") ? "active" : ""}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/recipes");
+          }}
+        >
+          Recipes
+        </a>
       </nav>
       <span className="spacer" />
+      <FrameworkPicker />
       <button className="icon-btn" onClick={toggle} aria-label="Toggle theme" title="Toggle theme">
         {theme === "dark" ? "☀️" : "🌙"}
       </button>
@@ -90,6 +102,26 @@ function Header({ onMenu }: { onMenu: () => void }) {
         <span>★</span> GitHub
       </a>
     </header>
+  );
+}
+
+function FrameworkPicker() {
+  const { framework, setFramework } = useFramework();
+  return (
+    <label className="fw-select" title="Framework — snippets adapt across the site">
+      <span className="fw-select-icon">🧱</span>
+      <select
+        value={framework}
+        onChange={(e) => setFramework(e.target.value as Framework)}
+        aria-label="Choose your framework"
+      >
+        {FRAMEWORKS.map((f) => (
+          <option key={f.id} value={f.id}>
+            {f.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

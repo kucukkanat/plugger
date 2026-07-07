@@ -183,6 +183,34 @@ export default definePlugin<DemoApi, DemoState>({
 });
 `;
 
+export const PERMISSIONS = `import { definePlugin } from "@plugger/core";
+import type { DemoApi, DemoState } from "@demo/host";
+
+// A plugin only *declares* the capabilities it needs. The host's policy is the
+// authority on what's actually granted — any ungranted use throws PermissionError.
+export default definePlugin<DemoApi, DemoState>({
+  name: "note-taker",
+  version: "1.0.0",
+  permissions: ["ui:render", "state:write", "api:notify"],
+  activate(ctx) {
+    ctx.ui.contribute("toolbar", {
+      mount(el) {
+        const btn = document.createElement("button");
+        btn.className = "chip";
+        btn.textContent = "🔔 Add note";
+        btn.onclick = () => {
+          // Needs "state:write" — else this line throws PermissionError.
+          ctx.store.setState((s) => ({ unread: s.unread + 1 }));
+          // Needs "api:notify" — reaches a service the host chose to expose.
+          ctx.api.notify("note added");
+        };
+        el.appendChild(btn);
+      },
+    });
+  },
+});
+`;
+
 export const EXAMPLES: Example[] = [
   { id: "hello", label: "Hello World", emoji: "👋", description: "A toolbar button — the smallest possible plugin.", code: HELLO },
   { id: "reading-time", label: "Read State", emoji: "⏱", description: "Reactively read application state.", code: WORD_COUNT },

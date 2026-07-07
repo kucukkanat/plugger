@@ -11,6 +11,9 @@ import {
   type LogEntry,
 } from "./demoHost";
 import type { monaco as Monaco } from "./monaco";
+import { highlight } from "../components/highlight";
+// The exact host source plugins run against — imported raw so it never drifts.
+import demoHostSource from "./demoHost.ts?raw";
 
 let uid = 0;
 const SLOTS = ["toolbar", "sidebar", "content", "statusbar"] as const;
@@ -40,13 +43,16 @@ export function Playground({
   const [state, setState] = useState<DemoState | null>(null);
   const [slotCounts, setSlotCounts] = useState<Record<string, number>>({});
   const [running, setRunning] = useState(false);
-  const [tab, setTab] = useState<"preview" | "console">("preview");
+  const [tab, setTab] = useState<"preview" | "console" | "host">("preview");
 
   const monacoApi = useRef<{
     editor: Monaco.editor.IStandaloneCodeEditor;
     monaco: typeof Monaco;
   } | null>(null);
   const demoRef = useRef<DemoHost | null>(null);
+  // Monotonic token so overlapping run() calls (e.g. StrictMode's double-invoked
+  // autoRun) don't each spin up a host and render into the same slots twice.
+  const runToken = useRef(0);
   const handles = useRef<SlotHandle[]>([]);
   const cleanups = useRef<Array<() => void>>([]);
   const slotEls = useRef<Record<Slot, HTMLDivElement | null>>({
@@ -72,10 +78,13 @@ export function Playground({
 
   const run = useCallback(async () => {
     if (!monacoApi.current) return;
+    const token = ++runToken.current;
     setRunning(true);
     setError(null);
     setLogs([]);
     await teardown();
+    // A newer run superseded us while tearing down — let it own the host/slots.
+    if (token !== runToken.current) return;
 
     const collected: LogEntry[] = [];
     const demo = createDemoHost((entry) => {
@@ -89,6 +98,7 @@ export function Playground({
       const model = editor.getModel();
       if (!model) throw new Error("Editor model unavailable.");
       const { module, diagnostics: diags } = await evaluateModel(monaco, model);
+      if (token !== runToken.current) return;
       setDiagnostics(diags);
 
       const plugin = (module.default ?? module.plugin) as PluginDefinition | undefined;
@@ -99,6 +109,7 @@ export function Playground({
       }
 
       await demo.host.use(plugin as Parameters<typeof demo.host.use>[0]);
+      if (token !== runToken.current) return;
 
       for (const slot of SLOTS) {
         const el = slotEls.current[slot];
@@ -115,9 +126,10 @@ export function Playground({
       setState({ ...demo.host.store.getState() });
       cleanups.current.push(demo.host.store.subscribe((s) => setState({ ...s })));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (token === runToken.current)
+        setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setRunning(false);
+      if (token === runToken.current) setRunning(false);
     }
   }, [teardown]);
 
@@ -164,6 +176,12 @@ export function Playground({
           >
             Console{logs.length ? ` (${logs.length})` : ""}
           </button>
+          <button
+            className={`pg-tab ${tab === "host" ? "active" : ""}`}
+            onClick={() => setTab("host")}
+          >
+            Host
+          </button>
         </div>
         <button className="pg-btn" onClick={reset} title="Reset to original code">
           Reset
@@ -197,8 +215,10 @@ export function Playground({
                 </div>
               )}
             </>
-          ) : (
+          ) : tab === "console" ? (
             <Console logs={logs} />
+          ) : (
+            <HostView source={demoHostSource} />
           )}
         </div>
       </div>
@@ -260,6 +280,23 @@ function DemoApp({
         </div>
       </div>
     </div>
+  );
+}
+
+function HostView({ source }: { source: string }) {
+  return (
+    <>
+      <div className="pg-preview-head">Host · @demo/host</div>
+      <p className="pg-host-note">
+        The live host your plugin runs against — its <code>state</code>,{" "}
+        <code>api</code> services and <code>slots</code>. This is what{" "}
+        <code>import type &#123; DemoApi, DemoState &#125; from "@demo/host"</code>{" "}
+        resolves to.
+      </p>
+      <pre className="pg-host">
+        <code dangerouslySetInnerHTML={{ __html: highlight(source, "ts") }} />
+      </pre>
+    </>
   );
 }
 

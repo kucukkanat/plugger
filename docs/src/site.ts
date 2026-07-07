@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { Landing } from "./pages/Landing";
 import { PlaygroundPage } from "./pages/PlaygroundPage";
 import { Examples } from "./pages/Examples";
+import { Recipes } from "./pages/Recipes";
 import {
   ApiReference,
   AppAuthors,
@@ -44,6 +45,7 @@ export const PAGES: PageDef[] = [
 
   { path: "/playground", title: "Playground", emoji: "🎮", group: "Play", Component: PlaygroundPage, chrome: "full" },
   { path: "/examples", title: "Examples", emoji: "✨", group: "Play", Component: Examples },
+  { path: "/recipes", title: "Recipes", emoji: "🧑‍🍳", group: "Play", Component: Recipes, chrome: "full" },
 ];
 
 export const GROUP_ORDER = [

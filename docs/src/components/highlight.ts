@@ -16,9 +16,19 @@ const KEYWORDS = new Set([
 const escapeHtml = (s: string): string =>
   s.replace(/[&<>]/g, (c) => (c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;"));
 
-export function highlight(code: string, lang = "ts"): string {
+/**
+ * Optionally, a `linkMap` maps a token's exact text (an identifier, or the
+ * inner text of a string literal) to a stable link id. Matching tokens are
+ * wrapped in `<span class="tok-link" data-link="id">` so a UI layer can
+ * cross-highlight related code across panes on hover.
+ */
+export function highlight(
+  code: string,
+  lang = "ts",
+  linkMap?: Record<string, string>,
+): string {
   if (lang === "bash" || lang === "sh" || lang === "shell") return highlightBash(code);
-  return highlightTs(code);
+  return highlightTs(code, linkMap);
 }
 
 function highlightBash(code: string): string {
@@ -27,14 +37,14 @@ function highlightBash(code: string): string {
     .map((line) => {
       if (line.trim().startsWith("#")) return `<span class="tok-com">${line}</span>`;
       return line.replace(
-        /^(\s*)(npm|pnpm|yarn|npx|node|git|cd|curl)\b/,
+        /^(\s*)(bun|bunx|npm|pnpm|yarn|npx|node|git|cd|curl)\b/,
         '$1<span class="tok-fn">$2</span>',
       );
     })
     .join("\n");
 }
 
-function highlightTs(code: string): string {
+function highlightTs(code: string, linkMap?: Record<string, string>): string {
   const tokens: string[] = [];
   let i = 0;
   const n = code.length;
@@ -42,6 +52,12 @@ function highlightTs(code: string): string {
   const push = (cls: string | null, text: string) => {
     const safe = escapeHtml(text);
     tokens.push(cls ? `<span class="${cls}">${safe}</span>` : safe);
+  };
+
+  const pushLinked = (cls: string | null, text: string, id: string) => {
+    const safe = escapeHtml(text);
+    const classes = `${cls ? `${cls} ` : ""}tok-link`;
+    tokens.push(`<span class="${classes}" data-link="${id}">${safe}</span>`);
   };
 
   while (i < n) {
@@ -73,7 +89,11 @@ function highlightTs(code: string): string {
         j++;
       }
       j = Math.min(j + 1, n);
-      push("tok-str", code.slice(i, j));
+      const str = code.slice(i, j);
+      const inner = str.length >= 2 ? str.slice(1, -1) : str;
+      const strId = linkMap?.[inner];
+      if (strId) pushLinked("tok-str", str, strId);
+      else push("tok-str", str);
       i = j;
       continue;
     }
@@ -91,7 +111,9 @@ function highlightTs(code: string): string {
       const m = rest.match(/^[a-zA-Z_$][\w$]*/)!;
       const word = m[0];
       const after = code.slice(i + word.length).match(/^\s*\(/);
+      const wordId = linkMap?.[word];
       if (KEYWORDS.has(word)) push("tok-key", word);
+      else if (wordId) pushLinked(after ? "tok-fn" : null, word, wordId);
       else if (after) push("tok-fn", word);
       else push(null, word);
       i += word.length;

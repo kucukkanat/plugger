@@ -446,6 +446,281 @@ code.inline {
   color: var(--text);
 }
 
+/* Framework picker (header) */
+.fw-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 4px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.fw-select:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.fw-select-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.fw-select select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  padding: 0 22px 0 2px;
+  cursor: pointer;
+  outline: none;
+  /* Chevron drawn as a background so it sits inside the pill. */
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 8px center, right 3px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.fw-select select option {
+  color: var(--text);
+  background: var(--bg-elevated);
+}
+
+/* Framework-aware code block with a tab strip */
+.fw-code {
+  margin: 20px 0;
+}
+.fw-code .codeblock {
+  margin: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: none;
+}
+.fw-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow-x: auto;
+}
+.fw-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.fw-tabs button:hover {
+  color: var(--text);
+}
+.fw-tabs button.active {
+  color: var(--text);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+.fw-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.fw-file {
+  margin-left: auto;
+  padding-left: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Interactive linked tokens (host <-> plugin cross-highlight) */
+.tok-link {
+  border-radius: 4px;
+  cursor: help;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--brand-1) 45%, transparent);
+  transition: background 0.12s, box-shadow 0.12s;
+}
+.tok-link:hover,
+.tok-link.link-active {
+  background: color-mix(in srgb, var(--brand-1) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-1) 55%, transparent);
+}
+
+/* Recipes page (host + plugin side by side) */
+.recipes-page {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 42px 32px 80px;
+}
+.recipes-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.recipes-inner h1 {
+  font-size: 40px;
+  font-weight: 820;
+  letter-spacing: -0.03em;
+  margin: 10px 0 14px;
+}
+.recipes-inner .lead {
+  font-size: 18px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 760px;
+}
+.recipe-hint {
+  border-radius: 4px;
+  padding: 0 4px;
+  background: color-mix(in srgb, var(--brand-1) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-1) 45%, transparent);
+}
+.recipe-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 28px 0 8px;
+}
+.recipe-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.recipe-pill:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.recipe-pill.active {
+  color: var(--text);
+  border-color: transparent;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-1) 45%, transparent);
+}
+.recipe-pill-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+.recipe-desc {
+  color: var(--text-muted);
+  font-size: 15px;
+  margin: 14px 0 18px;
+}
+.recipe-fw {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.recipe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 16px;
+  background: var(--bg-subtle);
+}
+.recipe-pane {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-code);
+  overflow: hidden;
+  min-width: 0;
+}
+.recipe-pane-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.recipe-pane-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.recipe-pane-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+.recipe-pane pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+.recipe-pane code {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.recipe-note {
+  margin-top: 14px;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text-faint);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.recipe-note.on {
+  color: var(--text);
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--brand-1) 40%, var(--border));
+  background: color-mix(in srgb, var(--brand-1) 8%, var(--bg-elevated));
+}
+.recipe-note code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--bg-code);
+}
+@media (max-width: 820px) {
+  .recipe-grid {
+    grid-template-columns: 1fr;
+  }
+  .recipes-page {
+    padding: 28px 18px 60px;
+  }
+}
+
 /* Simple token colors for static highlighter */
 .tok-key {
   color: #b14efc;

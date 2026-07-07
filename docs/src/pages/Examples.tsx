@@ -1,9 +1,11 @@
-import { Eyebrow } from "../components/ui";
+import { Callout, Eyebrow } from "../components/ui";
 import { EXAMPLES } from "../examples/plugins";
 import { highlight } from "../components/highlight";
-import { navigate } from "../router";
+import { navigate, Link } from "../router";
+import { frameworkMeta, useFramework } from "../framework";
 
 export function Examples() {
+  const label = frameworkMeta(useFramework().framework).label;
   return (
     <article className="prose">
       <Eyebrow>Examples</Eyebrow>
@@ -12,6 +14,13 @@ export function Examples() {
         Real, runnable plugins covering every part of the API. Click any card to
         open it in the playground.
       </p>
+
+      <Callout type="info" title={`Drop-in for your ${label} app`}>
+        Every plugin here is a plain ES module that contributes DOM — so the
+        same file runs unchanged in {label}. Wire it up with the{" "}
+        <Link to="/docs/frameworks">{label} adapter</Link>, then{" "}
+        <code>host.load()</code> any of these.
+      </Callout>
 
       <div className="grid cols-2" style={{ marginTop: 30 }}>
         {EXAMPLES.map((e) => (

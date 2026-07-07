@@ -1,7 +1,16 @@
-import { Callout, CodeBlock, Eyebrow, Grid, Card } from "../components/ui";
+import {
+  Callout,
+  CodeBlock,
+  Eyebrow,
+  Grid,
+  Card,
+  FrameworkCode,
+  FrameworkInstall,
+} from "../components/ui";
 import { Playground } from "../playground/Playground";
 import { Link } from "../router";
 import { HELLO, WORD_COUNT, THEME, COMMANDS } from "../examples/plugins";
+import { frameworkMeta, useFramework } from "../framework";
 
 /* --------------------------------------------------------------------- */
 /* Introduction                                                          */
@@ -84,9 +93,11 @@ export function AppAuthors() {
       </p>
 
       <h2>1. Install</h2>
-      <CodeBlock lang="bash">{`npm install @plugger/core
-# plus the adapter for your framework:
-npm install @plugger/react   # or @plugger/vue, @plugger/preact, @plugger/web-components`}</CodeBlock>
+      <p>
+        The core plus the adapter for your framework. Pick it in the top nav and
+        every command and snippet on this page follows along.
+      </p>
+      <FrameworkInstall />
 
       <h2>2. Create a host</h2>
       <p>
@@ -118,11 +129,16 @@ export const host = createPluginHost<AppApi, AppState>({
 
       <h2>3. Render the slots</h2>
       <p>
-        Wrap your app in a provider and drop a <code>&lt;PluggerSlot&gt;</code>{" "}
-        wherever plugin UI should appear. Contributions render in order and
-        update live as plugins come and go.
+        Give the host to your app and drop a slot wherever plugin UI should
+        appear. Contributions render in order and update live as plugins come and
+        go. Here it is in each framework:
       </p>
-      <CodeBlock lang="tsx" filename="App.tsx">{`import { PluggerProvider, PluggerSlot } from "@plugger/react";
+      <FrameworkCode
+        variants={{
+          react: {
+            lang: "tsx",
+            filename: "App.tsx",
+            code: `import { PluggerProvider, PluggerSlot } from "@plugger/react";
 import { host } from "./host";
 
 export function App() {
@@ -137,13 +153,63 @@ export function App() {
       </aside>
     </PluggerProvider>
   );
-}`}</CodeBlock>
+}`,
+          },
+          vue: {
+            lang: "html",
+            filename: "App.vue",
+            code: `<script setup lang="ts">
+import { providePlugger, PluggerSlot } from "@plugger/vue";
+import { host } from "./host";
 
-      <Callout type="tip" title="Not using React?">
-        The same host works with{" "}
-        <Link to="/docs/frameworks">Vue, Preact, Web Components, and vanilla JS</Link>.
-        UI contributions are plain DOM, so a plugin runs in any of them.
-      </Callout>
+providePlugger(host);
+</script>
+
+<template>
+  <header class="toolbar">
+    <h1>My App</h1>
+    <PluggerSlot name="toolbar" />
+  </header>
+  <aside>
+    <PluggerSlot name="sidebar" />
+  </aside>
+</template>`,
+          },
+          vanilla: {
+            lang: "ts",
+            filename: "main.ts",
+            code: `import { renderSlot } from "@plugger/vanilla";
+import { host } from "./host";
+
+// Render each slot into an existing element; keep the handle to clean up.
+const toolbar = renderSlot(host, "toolbar", document.querySelector("#toolbar"));
+const sidebar = renderSlot(host, "sidebar", document.querySelector("#sidebar"));
+
+// later: toolbar.dispose(); sidebar.dispose();`,
+          },
+          "web-components": {
+            lang: "html",
+            filename: "index.html",
+            code: `<header class="toolbar">
+  <h1>My App</h1>
+  <plugger-slot name="toolbar"></plugger-slot>
+</header>
+<aside>
+  <plugger-slot name="sidebar"></plugger-slot>
+</aside>
+
+<script type="module">
+  import { definePluggerElements, setDefaultHost } from "@plugger/web-components";
+  import { host } from "./host.js";
+
+  setDefaultHost(host);
+  definePluggerElements();
+</script>`,
+          },
+        }}
+      />
+
+      <NotUsingReactCallout />
 
       <h2>4. Load plugins</h2>
       <p>
@@ -388,9 +454,10 @@ export function Permissions() {
       <Eyebrow>Core concepts</Eyebrow>
       <h1>Permissions</h1>
       <p className="lead">
-        Plugins declare the capabilities they need. The host decides what's
-        granted. Any ungranted use throws a <code>PermissionError</code> — so a
-        plugin can never quietly reach past what you allowed.
+        Plugins declare the capabilities they need; the host decides what's
+        granted. Every capability the host exposes through the plugin{" "}
+        <code>context</code> checks its grant first and throws a{" "}
+        <code>PermissionError</code> if it's missing.
       </p>
 
       <h2>The capabilities</h2>
@@ -406,6 +473,52 @@ export function Permissions() {
           <tr><td><code>api:&lt;name&gt;</code></td><td>one host service; <code>api:*</code> grants all</td></tr>
         </tbody>
       </table>
+
+      <h2>What permissions are — and aren't</h2>
+      <p>
+        Plugins run as ES modules in your page's own realm — same{" "}
+        <code>window</code>, same <code>document</code>, no iframe or worker. So
+        permissions are <strong>not a sandbox</strong>: they gate Plugger's own
+        mediated API, but they can't revoke the ambient authority the browser
+        already hands every script on the page. That makes the capabilities two
+        different kinds of thing.
+      </p>
+      <Grid cols={2}>
+        <Card icon="🔒" title="Mediated — real boundaries">
+          <code>state:*</code>, <code>commands:*</code>, <code>events:*</code>{" "}
+          and <code>api:*</code> gate the host's <em>own instances</em>: the
+          shared store, your service functions, the command bus. A plugin can't
+          forge a reference to <code>host.store</code> or your{" "}
+          <code>api.saveDocument</code> — they exist only because{" "}
+          <code>context</code> handed them over. Withhold the grant and the
+          plugin genuinely cannot reach the resource.
+        </Card>
+        <Card icon="🌫️" title="Ambient — porous gates">
+          <code>ui:render</code> and <code>storage</code> shadow capabilities
+          the plugin already has. <code>ui:render</code> gates{" "}
+          <code>ctx.ui.contribute</code>, but the DOM is right there — a plugin
+          can <code>document.body.append(…)</code> without asking.{" "}
+          <code>storage</code> gates <code>ctx.storage</code> while{" "}
+          <code>localStorage</code> sits unguarded. Here the permission is a{" "}
+          <em>declaration of intent</em>, not a wall.
+        </Card>
+      </Grid>
+      <p>
+        The porous ones still earn their place. They keep the manifest complete —
+        a consent prompt or marketplace can honestly show “renders UI” — and the
+        sanctioned <code>ctx.ui</code> path buys managed slot placement,
+        ordering, and automatic cleanup on deactivate. A review process or lint
+        can even <em>require</em> that path, which is what makes the declaration
+        enforceable out of band.
+      </p>
+      <Callout type="warn" title="Not a sandbox — isolate untrusted code">
+        This model targets <strong>cooperative</strong> plugins: first-party and
+        known third-party code you want to keep least-privileged and auditable.
+        To run genuinely untrusted code you need a real isolation boundary — an
+        iframe, Worker, or ShadowRealm — bootstrapped through the{" "}
+        <Link to="/docs/sources">injectable importer</Link>. Core runs plugins
+        in-realm by design, for zero-overhead first-party extension.
+      </Callout>
 
       <h2>Default policy</h2>
       <p>
@@ -551,43 +664,86 @@ export function Frameworks() {
       <p className="lead">
         The core is framework-agnostic. Each adapter is a thin binding that
         renders slots and exposes idiomatic hooks/composables. One plugin works
-        across all of them.
+        across all of them — pick yours in the top nav and this page adapts.
       </p>
 
-      <h2>React &amp; Preact</h2>
-      <CodeBlock lang="tsx">{`import { PluggerProvider, PluggerSlot, usePluginStore, useCommands } from "@plugger/react";
+      <h2>Reading state reactively</h2>
+      <p>
+        Subscribe to a slice of host state and render a slot beside it. The
+        adapter wires up the subscription and tears it down for you.
+      </p>
+      <FrameworkCode
+        variants={{
+          react: {
+            lang: "tsx",
+            filename: "Toolbar.tsx",
+            code: `import { PluggerProvider, PluggerSlot, usePluginStore } from "@plugger/react";
 
 function Toolbar() {
   const unread = usePluginStore((s) => s.unread);
   return <PluggerSlot name="toolbar" fallback={<span>{unread} unread</span>} />;
 }
 
-<PluggerProvider host={host}><Toolbar /></PluggerProvider>`}</CodeBlock>
-      <p><code>@plugger/preact</code> exposes the identical API for Preact.</p>
+<PluggerProvider host={host}><Toolbar /></PluggerProvider>`,
+          },
+          vue: {
+            lang: "html",
+            filename: "Toolbar.vue",
+            code: `<script setup lang="ts">
+import { providePlugger, PluggerSlot, usePluginStore } from "@plugger/vue";
 
-      <h2>Vue 3</h2>
-      <CodeBlock lang="ts">{`import { providePlugger, PluggerSlot, usePluginStore } from "@plugger/vue";
-
-// in a parent setup():
 providePlugger(host);
+const unread = usePluginStore((s) => s.unread);
+</script>
 
-// in any descendant:
-const theme = usePluginStore((s) => s.theme);
-// template: <PluggerSlot name="sidebar" />`}</CodeBlock>
+<template>
+  <span>{{ unread }} unread</span>
+  <PluggerSlot name="toolbar" />
+</template>`,
+          },
+          vanilla: {
+            lang: "ts",
+            filename: "toolbar.ts",
+            code: `import { renderSlot } from "@plugger/vanilla";
 
-      <h2>Web Components</h2>
-      <CodeBlock lang="html">{`<plugger-slot name="sidebar"></plugger-slot>
+const handle = renderSlot(host, "toolbar", document.querySelector("#toolbar"));
+
+// Subscribe to just the slice you care about:
+host.store.select(
+  (s) => s.unread,
+  (unread) => {
+    document.querySelector("#unread").textContent = \`\${unread} unread\`;
+  },
+);
+// handle.dispose() to stop and clean up`,
+          },
+          "web-components": {
+            lang: "html",
+            filename: "index.html",
+            code: `<span id="unread"></span>
+<plugger-slot name="toolbar"></plugger-slot>
+
 <script type="module">
   import { definePluggerElements, setDefaultHost } from "@plugger/web-components";
   setDefaultHost(host);
   definePluggerElements();
-</script>`}</CodeBlock>
 
-      <h2>Vanilla JS</h2>
-      <CodeBlock lang="ts">{`import { renderSlot } from "@plugger/vanilla";
+  host.store.select(
+    (s) => s.unread,
+    (unread) => {
+      document.querySelector("#unread").textContent = \`\${unread} unread\`;
+    },
+  );
+</script>`,
+          },
+        }}
+      />
 
-const handle = renderSlot(host, "toolbar", document.querySelector("#toolbar"));
-// handle.dispose() to stop and clean up`}</CodeBlock>
+      <Callout type="info" title="Preact too">
+        <code>@plugger/preact</code> exposes the identical API to{" "}
+        <code>@plugger/react</code> — the same components and hooks, imported
+        from the Preact package.
+      </Callout>
 
       <Callout type="info" title="They all share one engine">
         Every adapter delegates to <code>@plugger/vanilla</code>'s keyed{" "}
@@ -659,6 +815,22 @@ host.on("plugin:error", ({ name, error }) => {});`}</CodeBlock>
         next={{ to: "/playground", title: "Playground" }}
       />
     </article>
+  );
+}
+
+/* --------------------------------------------------------------------- */
+/* Framework-aware callout                                               */
+/* --------------------------------------------------------------------- */
+function NotUsingReactCallout() {
+  const { framework } = useFramework();
+  const label = frameworkMeta(framework).label;
+  return (
+    <Callout type="tip" title={`Building with ${label}?`}>
+      Every snippet on this page already targets {label} — switch any time from
+      the framework picker in the top nav. UI contributions are plain DOM, so a
+      single plugin runs unchanged across{" "}
+      <Link to="/docs/frameworks">React, Vue, Web Components, and vanilla JS</Link>.
+    </Callout>
   );
 }
 
