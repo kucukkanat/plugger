@@ -42,17 +42,21 @@ jobs:
           fi
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 
-          # Publish in dependency order (core → vanilla → adapters). bun rewrites
-          # the internal workspace:* deps to the real version at publish time.
-          # Versions already on npm are skipped, so re-runs are safe.
+          out="$(mktemp -d)"
+          # Publish in dependency order (core → vanilla → adapters). `bun pm pack`
+          # rewrites the internal workspace:* deps to the real version, and
+          # `npm publish` handles registry auth from ~/.npmrc. Versions already on
+          # npm are skipped, so re-runs are safe.
           for p in core vanilla preact react vue web-components; do
             dir="packages/$p"
             name=$(node -p "require('./$dir/package.json').name")
             version=$(node -p "require('./$dir/package.json').version")
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "✓ $name@$version already on npm — skipping"
-            else
-              echo "→ publishing $name@$version"
-              (cd "$dir" && bun publish --access public)
+              continue
             fi
+            echo "→ packing + publishing $name@$version"
+            (cd "$dir" && bun pm pack --destination "$out")
+            base=$(echo "$name" | sed 's|^@||; s|/|-|g')
+            npm publish "$out/${base}-${version}.tgz" --access public
           done
