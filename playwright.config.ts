@@ -33,7 +33,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm --filter @plugger/docs preview",
+    command: "bun run --filter @plugger/docs preview",
     port: PORT,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

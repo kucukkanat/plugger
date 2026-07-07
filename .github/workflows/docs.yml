@@ -19,20 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -r --filter "./packages/*" run build
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - run: bun run build
       - name: Build docs
         env:
           # Served from https://<user>.github.io/plugger/
           DOCS_BASE: /plugger/
-        run: pnpm docs:build
+        run: bun run docs:build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/dist

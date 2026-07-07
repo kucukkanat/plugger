@@ -15,8 +15,8 @@ It shows an application author's side of the story:
 ## Run it
 
 ```bash
-pnpm install
-pnpm --filter @plugger/example-react-host dev
+bun install
+bun run --filter @plugger/example-react-host dev
 ```
 
 Then try loading a remote plugin — paste a URL to any ES module that

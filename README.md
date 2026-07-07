@@ -113,8 +113,8 @@ The docs site is a Vite app with **live Monaco TypeScript playgrounds** that
 compile and run real plugins entirely in your browser.
 
 ```bash
-pnpm install
-pnpm docs:dev        # http://localhost:5173
+bun install
+bun run docs:dev     # http://localhost:5173
 ```
 
 ## How it works
@@ -139,15 +139,15 @@ pnpm docs:dev        # http://localhost:5173
 
 ## Development
 
-This is a pnpm workspace.
+This is a Bun workspace.
 
 ```bash
-pnpm install
-pnpm build          # build all packages
-pnpm test           # unit tests (Vitest)
-pnpm test:e2e       # end-to-end tests (Playwright) against the docs playground
-pnpm typecheck      # typecheck every package
-pnpm docs:dev       # run the documentation site
+bun install
+bun run build       # build all packages
+bun run test        # unit tests (Vitest)
+bun run test:e2e    # end-to-end tests (Playwright) against the docs playground
+bun run typecheck   # typecheck every package
+bun run docs:dev    # run the documentation site
 ```
 
 - **145 unit tests** cover the core runtime and every adapter.
