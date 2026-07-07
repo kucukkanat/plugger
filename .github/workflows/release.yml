@@ -1,0 +1,58 @@
+name: Release
+
+# Publishes the @plugger/* packages to npmjs.org.
+# Trigger by pushing a version tag (e.g. `git tag v0.1.0 && git push --tags`),
+# or run manually from the Actions tab.
+#
+# Requires a repository secret named NPM_TOKEN — an npm automation token with
+# publish rights to the @plugger scope (npmjs.com → Access Tokens → Generate →
+# "Automation"). Add it with:  gh secret set NPM_TOKEN
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Build packages
+        run: bun run build
+
+      - name: Publish @plugger/* to npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is not set. Add it via Settings → Secrets and variables → Actions, or: gh secret set NPM_TOKEN"
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+
+          # Publish in dependency order (core → vanilla → adapters). bun rewrites
+          # the internal workspace:* deps to the real version at publish time.
+          # Versions already on npm are skipped, so re-runs are safe.
+          for p in core vanilla preact react vue web-components; do
+            dir="packages/$p"
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "✓ $name@$version already on npm — skipping"
+            else
+              echo "→ publishing $name@$version"
+              (cd "$dir" && bun publish --access public)
+            fi
+          done
