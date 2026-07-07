@@ -1,0 +1,38 @@
+{
+  "name": "@plugger/preact",
+  "version": "0.1.0",
+  "description": "Preact bindings for the Plugger plugin framework.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "preact": ">=10"
+  },
+  "dependencies": {
+    "@plugger/core": "workspace:*",
+    "@plugger/vanilla": "workspace:*"
+  },
+  "devDependencies": {
+    "preact": "^10.24.3",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

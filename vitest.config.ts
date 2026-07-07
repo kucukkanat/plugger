@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["packages/**/*.{test,spec}.ts"],
+    include: ["packages/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     environmentMatchGlobs: [
       ["packages/{react,preact,vue,web-components,vanilla}/**", "happy-dom"],

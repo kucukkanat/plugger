@@ -1,0 +1,33 @@
+{
+  "name": "@plugger/vanilla",
+  "version": "0.1.0",
+  "description": "Framework-free DOM helpers for rendering Plugger plugin UI contributions.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@plugger/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
