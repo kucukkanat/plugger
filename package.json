@@ -1,0 +1,32 @@
+{
+  "name": "plugger-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plugger — a browser-native meta framework for building lazily-loaded plugins for any SPA.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "pnpm -r run typecheck",
+    "docs:dev": "pnpm --filter @plugger/docs dev",
+    "docs:build": "pnpm --filter @plugger/docs build",
+    "docs:preview": "pnpm --filter @plugger/docs preview",
+    "clean": "pnpm -r exec rm -rf dist node_modules/.vite",
+    "release": "pnpm build && pnpm test run"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@vitest/coverage-v8": "^2.1.4",
+    "happy-dom": "^15.7.4",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}
