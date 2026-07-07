@@ -1,6 +1,6 @@
 {
   "name": "@plugger/web-components",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A <plugger-slot> custom element for the Plugger plugin framework.",
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

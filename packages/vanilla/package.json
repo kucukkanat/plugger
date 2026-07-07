@@ -1,6 +1,6 @@
 {
   "name": "@plugger/vanilla",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Framework-free DOM helpers for rendering Plugger plugin UI contributions.",
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
