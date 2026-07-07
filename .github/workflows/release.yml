@@ -32,6 +32,41 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      # Rewrite internal `workspace:*` deps to the concrete release versions
+      # before packing. bun's pack reads workspace versions from the lockfile,
+      # which can lag a version bump — pinning here makes the published deps
+      # correct regardless of lockfile state.
+      - name: Pin internal @plugger/* deps to release versions
+        run: |
+          node -e '
+            const fs = require("fs"), path = require("path");
+            const dirs = fs
+              .readdirSync("packages")
+              .map((d) => path.join("packages", d))
+              .filter((d) => fs.existsSync(path.join(d, "package.json")));
+            const version = {};
+            for (const d of dirs) {
+              const j = JSON.parse(fs.readFileSync(path.join(d, "package.json")));
+              version[j.name] = j.version;
+            }
+            for (const d of dirs) {
+              const f = path.join(d, "package.json");
+              const j = JSON.parse(fs.readFileSync(f));
+              let changed = false;
+              const deps = j.dependencies || {};
+              for (const name of Object.keys(deps)) {
+                if (deps[name] === "workspace:*" && version[name]) {
+                  deps[name] = version[name];
+                  changed = true;
+                }
+              }
+              if (changed) {
+                fs.writeFileSync(f, JSON.stringify(j, null, 2) + "\n");
+                console.log("pinned", j.name, "->", JSON.stringify(deps));
+              }
+            }
+          '
+
       - name: Publish @plugger/* to npm
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
