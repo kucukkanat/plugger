@@ -10,7 +10,7 @@ import type { PluginHost, PluginRecord, RegisteredCommand } from "@plugger/core"
 const HostContext = createContext<PluginHost | null>(null);
 
 export interface PluggerProviderProps {
-  host: PluginHost<never, never> | PluginHost;
+  host: PluginHost<any, any>;
   children?: ComponentChildren;
 }
 
@@ -35,7 +35,7 @@ function useSubscription(subscribe: (cb: () => void) => () => void): void {
 
 export interface PluggerSlotProps extends SlotRenderOptions {
   name: string;
-  host?: PluginHost<never, never> | PluginHost;
+  host?: PluginHost<any, any>;
   as?: keyof HTMLElementTagNameMap;
   class?: string;
   fallback?: ComponentChildren;

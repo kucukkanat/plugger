@@ -22,7 +22,7 @@ import type { PluginHost, PluginRecord, RegisteredCommand } from "@plugger/core"
 export const PluggerKey: InjectionKey<PluginHost> = Symbol("plugger-host");
 
 /** Provide a host to descendant components. Call in a parent `setup()`. */
-export function providePlugger(host: PluginHost<never, never> | PluginHost): void {
+export function providePlugger(host: PluginHost<any, any>): void {
   provide(PluggerKey, host as PluginHost);
 }
 

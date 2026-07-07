@@ -17,7 +17,7 @@ import type { PluginHost } from "@plugger/core";
 let defaultHost: PluginHost | null = null;
 
 /** Set the host used by `<plugger-slot>` elements that have no `.host` property. */
-export function setDefaultHost(host: PluginHost<never, never> | PluginHost): void {
+export function setDefaultHost(host: PluginHost<any, any>): void {
   defaultHost = host as PluginHost;
 }
 

@@ -24,7 +24,7 @@ import type { PluginHost, PluginRecord, RegisteredCommand } from "@plugger/core"
 const HostContext = createContext<PluginHost<never, never> | null>(null);
 
 export interface PluggerProviderProps {
-  host: PluginHost<never, never> | PluginHost;
+  host: PluginHost<any, any>;
   children?: ReactNode;
 }
 
@@ -52,7 +52,7 @@ export interface PluggerSlotProps extends SlotRenderOptions {
   /** Slot name to render. */
   name: string;
   /** Host override (defaults to the provider's host). */
-  host?: PluginHost<never, never> | PluginHost;
+  host?: PluginHost<any, any>;
   /** Tag for the outer container. Default `"div"`. */
   as?: keyof HTMLElementTagNameMap;
   className?: string;

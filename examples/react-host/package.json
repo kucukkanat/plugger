@@ -1,0 +1,26 @@
+{
+  "name": "@plugger/example-react-host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A minimal, complete example of making a React SPA extensible with Plugger.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@plugger/core": "workspace:*",
+    "@plugger/react": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

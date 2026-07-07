@@ -27,12 +27,38 @@ export interface CompileResult {
  * worker — entirely in the browser, no server round-trip. Also collects
  * semantic + syntactic diagnostics so the playground can block a broken run.
  */
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Monaco registers its TypeScript worker lazily, a beat after the first TS
+ * model exists. Calling too early throws "TypeScript not registered!", so we
+ * retry until the language service is up.
+ */
+async function acquireWorker(
+  monaco: typeof Monaco,
+  uri: Monaco.Uri,
+  tries = 50,
+): Promise<Monaco.languages.typescript.TypeScriptWorker> {
+  let lastError: unknown;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
+      return await getWorker(uri);
+    } catch (error) {
+      lastError = error;
+      await sleep(80);
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("TypeScript worker failed to initialise.");
+}
+
 export async function compileModel(
   monaco: typeof Monaco,
   model: Monaco.editor.ITextModel,
 ): Promise<CompileResult> {
-  const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
-  const worker = await getWorker(model.uri);
+  const worker = await acquireWorker(monaco, model.uri);
   const uri = model.uri.toString();
 
   const [syntactic, semantic, output] = await Promise.all([
