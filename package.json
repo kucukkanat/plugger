@@ -1,6 +1,6 @@
 {
   "name": "plugger-monorepo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Plugger — a browser-native meta framework for building lazily-loaded plugins for any SPA.",
   "license": "MIT",

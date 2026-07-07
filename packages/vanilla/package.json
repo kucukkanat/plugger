@@ -1,6 +1,6 @@
 {
   "name": "@plugger/vanilla",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Framework-free DOM helpers for rendering Plugger plugin UI contributions.",
   "license": "MIT",
   "type": "module",

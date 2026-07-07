@@ -1,6 +1,6 @@
 {
   "name": "@plugger/vue",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Vue 3 bindings for the Plugger plugin framework.",
   "license": "MIT",
   "type": "module",
